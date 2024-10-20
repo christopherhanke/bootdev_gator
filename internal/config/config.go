@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 )
@@ -10,60 +9,37 @@ import (
 const configFileName = ".gatorconfig.json"
 
 type Config struct {
-	Db_url            string `json:"db_url"`
-	Current_user_name string `json:"current_user_name"`
+	DBURL           string `json:"db_url"`
+	CurrentUserName string `json:"current_user_name"`
 }
 
-func Read() Config {
+func (cfg *Config) SetUser(username string) error {
+
+	cfg.CurrentUserName = username
+	return write(*cfg)
+}
+
+func Read() (Config, error) {
 	// read the JSON config file and return Config struct
 	path, err := getConfigFilePath()
 	if err != nil {
-		fmt.Println("Error get file path", err)
-		return Config{}
+		return Config{}, err
 	}
 	file, err := os.Open(path)
 	if err != nil {
-		fmt.Println("Error open file", err)
-		return Config{}
+		return Config{}, err
 	}
 	defer file.Close()
 	data, err := io.ReadAll(file)
 	if err != nil {
-		fmt.Println("Error read file", err)
-		return Config{}
+		return Config{}, err
 	}
 	var config Config
 	err = json.Unmarshal(data, &config)
 	if err != nil {
-		fmt.Println("Error unmarshal", err)
-		return Config{}
+		return Config{}, err
 	}
-	write(config)
-	return config
-}
-
-func (cfg Config) SetUser(username string) {
-	//writing Config struct to JSON config file after setting current_user_name
-	path, err := getConfigFilePath()
-	if err != nil {
-		fmt.Println("Error get file path", err)
-		return
-	}
-	file, err := os.Create(path)
-	if err != nil {
-		fmt.Println("Error open file", err)
-		return
-	}
-	defer file.Close()
-
-	cfg.Current_user_name = username
-
-	if data, err := json.Marshal(cfg); err == nil {
-		file.Write(data)
-	} else {
-		fmt.Println("Error writing file", err)
-	}
-
+	return config, nil
 }
 
 func getConfigFilePath() (string, error) {
@@ -77,6 +53,21 @@ func getConfigFilePath() (string, error) {
 }
 
 func write(cfg Config) error {
-	fmt.Println(cfg)
+	//writing Config struct to JSON config file
+	path, err := getConfigFilePath()
+	if err != nil {
+		return err
+	}
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if data, err := json.Marshal(cfg); err == nil {
+		file.Write(data)
+	} else {
+		return err
+	}
 	return nil
 }
