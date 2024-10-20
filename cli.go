@@ -1,4 +1,4 @@
-package cli
+package main
 
 import (
 	"fmt"
@@ -17,39 +17,43 @@ type command struct {
 
 func handlerLogin(s *state, cmd command) error {
 	//Login user given in commands args slice
-	if (len(cmd.args) < 1) || (len(cmd.args) > 1) {
-		return fmt.Errorf("commands arg slice is not 1")
+	if len(cmd.args) < 1 {
+		return fmt.Errorf("commands arg slice is smaller than 1")
+	}
+	if len(cmd.args) > 1 {
+		return fmt.Errorf("commands arg slice is bigger than 1")
 	}
 	err := s.cfg.SetUser(cmd.args[0])
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("User has been set: %v", s.cfg.CurrentUserName)
+	fmt.Printf("User has been set: %v\n", s.cfg.CurrentUserName)
 	return nil
 }
 
 type commands struct {
-	commandMap map[string]func(*state, command) error
+	CommandMap map[string]func(*state, command) error
 }
 
 func (c *commands) register(name string, f func(*state, command) error) {
 	//registers a new handler for a command
-	_, exists := c.commandMap[name]
+	_, exists := c.CommandMap[name]
 	if exists {
 		fmt.Printf("Handler exists: %v", name)
 		return
 	}
-	c.commandMap[name] = f
+	c.CommandMap[name] = f
 }
 
 func (c *commands) run(s *state, cmd command) error {
 	//run a given command with provided state if exists
-	_, exists := c.commandMap[cmd.name]
+	_, exists := c.CommandMap[cmd.name]
+	fmt.Printf("run: %v\n", cmd.name)
 	if !exists {
 		return fmt.Errorf("command does not exist: %v", cmd.name)
 	}
 
-	f := c.commandMap[cmd.name]
+	f := c.CommandMap[cmd.name]
 	return f(s, cmd)
 }
