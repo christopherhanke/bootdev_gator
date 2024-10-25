@@ -85,6 +85,26 @@ func handlerReset(s *state, cmd command) error {
 	return nil
 }
 
+func handlerUsers(s *state, cmd command) error {
+	//Print list of registered users and highlight current users
+	users, err := s.db.GetUsers(context.Background())
+	if err != nil {
+		return fmt.Errorf("failed to get users from database: %v", err)
+	}
+	if len(users) < 1 {
+		fmt.Println("no registered users")
+		return nil
+	}
+	for _, user := range users {
+		fmt.Printf("* %s ", user)
+		if user == s.cfg.CurrentUserName {
+			fmt.Print("(current)")
+		}
+		fmt.Println()
+	}
+	return nil
+}
+
 type commands struct {
 	CommandMap map[string]func(*state, command) error
 }

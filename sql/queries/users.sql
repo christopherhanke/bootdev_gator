@@ -13,3 +13,6 @@ select * from users where name = $1 limit 1;
 
 -- name: ResetUsers :exec
 delete from users;
+
+-- name: GetUsers :many
+select name from users;
