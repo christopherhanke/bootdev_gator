@@ -30,7 +30,7 @@ func handlerLogin(s *state, cmd command) error {
 	if len(cmd.args) > 1 {
 		return fmt.Errorf("commands arg slice is bigger than 1")
 	}
-	_, err := s.db.GetUsers(context.Background(), cmd.args[0])
+	_, err := s.db.GetUser(context.Background(), cmd.args[0])
 	if err != nil {
 		return fmt.Errorf("user is not registered: %v", cmd.args[0])
 	}
