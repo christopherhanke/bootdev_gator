@@ -9,6 +9,7 @@ import (
 
 	"github.com/christopherhanke/bootdev_gator/internal/config"
 	"github.com/christopherhanke/bootdev_gator/internal/database"
+	"github.com/christopherhanke/bootdev_gator/internal/rss"
 	"github.com/google/uuid"
 )
 
@@ -105,6 +106,28 @@ func handlerUsers(s *state, cmd command) error {
 	return nil
 }
 
+func handlerAgg(s *state, cmd command) error {
+	rssf, err := rss.FetchFeed(context.Background(), rss.URL)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("---- RSS Feed ----")
+	fmt.Printf("Title: %s\n", rssf.Channel.Title)
+	fmt.Printf("Link: %s\n", rssf.Channel.Link)
+	fmt.Printf("Description: %s\n", rssf.Channel.Description)
+	fmt.Println()
+	for key, item := range rssf.Channel.Item {
+		fmt.Printf("--- Item %2d ---\n", key)
+		fmt.Printf("Title: %s\n", item.Title)
+		fmt.Printf("Link: %s\n", item.Link)
+		fmt.Printf("Description: %s\n", item.Description)
+		fmt.Printf("Date: %s\n", item.PubDate)
+		fmt.Println()
+	}
+	return nil
+}
+
 type commands struct {
 	CommandMap map[string]func(*state, command) error
 }
@@ -122,7 +145,6 @@ func (c *commands) register(name string, f func(*state, command) error) {
 func (c *commands) run(s *state, cmd command) error {
 	//run a given command with provided state if exists
 	_, exists := c.CommandMap[cmd.name]
-	fmt.Printf("run: %v\n", cmd.name)
 	if !exists {
 		return fmt.Errorf("command does not exist: %v", cmd.name)
 	}
