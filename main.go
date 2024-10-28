@@ -18,7 +18,7 @@ func main() {
 		log.Fatalf("error reading config: %v\n", err)
 	} else {
 		currState.cfg = &bufferCfg
-		fmt.Printf("Read state: %+v\n", *currState.cfg)
+		//fmt.Printf("Read state: %+v\n", *currState.cfg)
 	}
 	db, err := sql.Open("postgres", currState.cfg.DBURL)
 	if err != nil {
@@ -36,6 +36,7 @@ func main() {
 	commands.register("reset", handlerReset)
 	commands.register("users", handlerUsers)
 	commands.register("agg", handlerAgg)
+	commands.register("addfeed", handlerAddFeed)
 
 	args := os.Args
 	if len(args) < 2 {
@@ -54,9 +55,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cfg, err := config.Read()
+	_, err = config.Read()
 	if err != nil {
 		log.Fatalf("error reading config: %v\n", err)
 	}
-	fmt.Printf("Read config again: %+v\n", cfg)
+	//fmt.Printf("Read config again: %+v\n", cfg)
 }

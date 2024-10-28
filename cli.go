@@ -128,6 +128,38 @@ func handlerAgg(s *state, cmd command) error {
 	return nil
 }
 
+func handlerAddFeed(s *state, cmd command) error {
+	//add feed to feeds table in database
+	if len(cmd.args) < 2 {
+		return fmt.Errorf("commands args is smaller than 2")
+	}
+	if len(cmd.args) > 2 {
+		return fmt.Errorf("commands args is bigger than 2")
+	}
+
+	dbUser, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("failed to get current user: %s", s.cfg.CurrentUserName)
+	}
+
+	feed, err := s.db.CreateFeed(
+		context.Background(),
+		database.CreateFeedParams{
+			ID:        uuid.New(),
+			CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+			UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+			Name:      cmd.args[0],
+			Url:       cmd.args[1],
+			UserID:    dbUser.ID,
+		},
+	)
+	if err != nil {
+		return err
+	}
+	fmt.Println(feed.ID, feed.CreatedAt, feed.UpdatedAt, feed.Name, feed.Url, feed.UserID)
+	return nil
+}
+
 type commands struct {
 	CommandMap map[string]func(*state, command) error
 }
