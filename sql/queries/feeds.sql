@@ -9,3 +9,6 @@ values(
     $6
 )
 returning *;
+
+-- name: GetFeeds :many
+select feeds.name, feeds.url, users.name from feeds inner join users on feeds.user_id = users.id;
