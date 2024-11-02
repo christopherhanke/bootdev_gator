@@ -128,7 +128,19 @@ func handlerAgg(s *state, cmd command) error {
 	return nil
 }
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerFeeds(s *state, cmd command) error {
+	//prints all feeds in database
+	feeds, err := s.db.GetFeeds(context.Background())
+	if err != nil {
+		return fmt.Errorf("failed to get feeds: %v", err)
+	}
+	for _, feed := range feeds {
+		fmt.Printf("Name: %s, URL: %s, User: %s\n", feed.Name, feed.Url, feed.Name_2)
+	}
+	return nil
+}
+
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 	//add feed to feeds table in database
 	if len(cmd.args) < 2 {
 		return fmt.Errorf("commands args is smaller than 2")
@@ -174,19 +186,7 @@ func handlerAddFeed(s *state, cmd command) error {
 	return nil
 }
 
-func handlerFeeds(s *state, cmd command) error {
-	//prints all feeds in database
-	feeds, err := s.db.GetFeeds(context.Background())
-	if err != nil {
-		return fmt.Errorf("failed to get feeds: %v", err)
-	}
-	for _, feed := range feeds {
-		fmt.Printf("Name: %s, URL: %s, User: %s\n", feed.Name, feed.Url, feed.Name_2)
-	}
-	return nil
-}
-
-func handlerFollow(s *state, cmd command) error {
+func handlerFollow(s *state, cmd command, user database.User) error {
 	//takes a single URL and creates a new feed follow for current user
 	if len(cmd.args) < 1 {
 		return fmt.Errorf("commands arg slice is smaller than 1")
@@ -220,7 +220,7 @@ func handlerFollow(s *state, cmd command) error {
 	return nil
 }
 
-func handlerFollowing(s *state, cmd command) error {
+func handlerFollowing(s *state, cmd command, user database.User) error {
 	//print the feeds current user is following
 	dbUser, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
 	if err != nil {
@@ -240,25 +240,23 @@ type commands struct {
 	CommandMap map[string]func(*state, command) error
 }
 
-func (c *commands) register(name string, f func(*state, command) error) {
+func (c *commands) register(name string, handler func(*state, command) error) {
 	//registers a new handler for a command
 	_, exists := c.CommandMap[name]
 	if exists {
 		fmt.Printf("Handler exists: %v", name)
 		return
 	}
-	c.CommandMap[name] = f
+	c.CommandMap[name] = handler
 }
 
 func (c *commands) run(s *state, cmd command) error {
 	//run a given command with provided state if exists
-	_, exists := c.CommandMap[cmd.name]
+	handler, exists := c.CommandMap[cmd.name]
 	if !exists {
 		return fmt.Errorf("command does not exist: %v", cmd.name)
 	}
-
-	f := c.CommandMap[cmd.name]
-	return f(s, cmd)
+	return handler(s, cmd)
 }
 
 func isName(s string) bool {

@@ -36,14 +36,22 @@ func main() {
 	commands.register("reset", handlerReset)
 	commands.register("users", handlerUsers)
 	commands.register("agg", handlerAgg)
-	commands.register("addfeed", handlerAddFeed)
 	commands.register("feeds", handlerFeeds)
-	commands.register("follow", handlerFollow)
-	commands.register("following", handlerFollowing)
+
+	commands.register("addfeed", middlerwareLoggedIn(handlerAddFeed))
+	commands.register("follow", middlerwareLoggedIn(handlerFollow))
+	commands.register("following", middlerwareLoggedIn(handlerFollowing))
 
 	args := os.Args
 	if len(args) < 2 {
 		log.Fatalf("Not enough arguments to run. Args given: %v\n", len(args))
+		return
+	}
+
+	if args[1] == "help" {
+		for name, _ := range commands.CommandMap {
+			fmt.Printf(" - %s\n", name)
+		}
 		return
 	}
 
