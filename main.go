@@ -49,7 +49,7 @@ func main() {
 	}
 
 	if args[1] == "help" {
-		for name, _ := range commands.CommandMap {
+		for name := range commands.CommandMap {
 			fmt.Printf(" - %s\n", name)
 		}
 		return
