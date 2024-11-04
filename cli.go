@@ -236,6 +236,21 @@ func handlerFollowing(s *state, cmd command, user database.User) error {
 	return nil
 }
 
+func handlerUnfollow(s *state, cmd command, user database.User) error {
+	//unfollow given feed by url for logged in user
+	if len(cmd.args) < 1 {
+		return fmt.Errorf("commands arg slice is smaller than 1")
+	}
+	if len(cmd.args) > 1 {
+		return fmt.Errorf("commands arg slice is bigger than 1")
+	}
+	s.db.DeleteFeedFollow(context.Background(), database.DeleteFeedFollowParams{
+		Name: user.Name,
+		Url:  cmd.args[0],
+	})
+	return nil
+}
+
 type commands struct {
 	CommandMap map[string]func(*state, command) error
 }
