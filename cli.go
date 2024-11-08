@@ -9,7 +9,6 @@ import (
 
 	"github.com/christopherhanke/bootdev_gator/internal/config"
 	"github.com/christopherhanke/bootdev_gator/internal/database"
-	"github.com/christopherhanke/bootdev_gator/internal/rss"
 	"github.com/google/uuid"
 )
 
@@ -107,25 +106,25 @@ func handlerUsers(s *state, cmd command) error {
 }
 
 func handlerAgg(s *state, cmd command) error {
-	rssf, err := rss.FetchFeed(context.Background(), rss.URL)
+	if len(cmd.args) < 1 {
+		return fmt.Errorf("commands args is smaller than 1")
+	}
+	if len(cmd.args) > 1 {
+		return fmt.Errorf("commands args is bigger than 1")
+	}
+	time_between_req, err := time.ParseDuration(cmd.args[0])
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("---- RSS Feed ----")
-	fmt.Printf("Title: %s\n", rssf.Channel.Title)
-	fmt.Printf("Link: %s\n", rssf.Channel.Link)
-	fmt.Printf("Description: %s\n", rssf.Channel.Description)
-	fmt.Println()
-	for key, item := range rssf.Channel.Item {
-		fmt.Printf("--- Item %2d ---\n", key)
-		fmt.Printf("Title: %s\n", item.Title)
-		fmt.Printf("Link: %s\n", item.Link)
-		fmt.Printf("Description: %s\n", item.Description)
-		fmt.Printf("Date: %s\n", item.PubDate)
-		fmt.Println()
+	fmt.Printf("Collecting feeds everey %v\n", time_between_req)
+	ticker := time.NewTicker(time_between_req)
+	for ; ; <-ticker.C {
+		err = scrapeFeeds(s)
+		if err != nil {
+			return err
+		}
 	}
-	return nil
+
 }
 
 func handlerFeeds(s *state, cmd command) error {

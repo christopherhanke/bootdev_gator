@@ -9,5 +9,7 @@ create table feeds(
     foreign key (user_id) references users(id)
 );
 
+alter table feeds add column last_fetched_at timestamp;
+
 -- +goose Down
-drop table feed;
+drop table feeds;
