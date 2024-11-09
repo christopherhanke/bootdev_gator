@@ -26,7 +26,7 @@ func scrapeFeeds(s *state) error {
 	if err != nil {
 		return err
 	}
-
+	fmt.Printf("Tried at %s\n", time.Now().String())
 	for _, item := range rssf.Channel.Item {
 		fmt.Printf("%s\n", item.Title)
 	}
