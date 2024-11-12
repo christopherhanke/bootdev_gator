@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"time"
 	"unicode"
 
@@ -22,13 +23,10 @@ type command struct {
 	args []string
 }
 
+// Login user given in commands args slice
 func handlerLogin(s *state, cmd command) error {
-	//Login user given in commands args slice
-	if len(cmd.args) < 1 {
-		return fmt.Errorf("commands arg slice is smaller than 1")
-	}
-	if len(cmd.args) > 1 {
-		return fmt.Errorf("commands arg slice is bigger than 1")
+	if len(cmd.args) < 1 || len(cmd.args) > 1 {
+		return fmt.Errorf("usage: %v <user>", cmd.name)
 	}
 	_, err := s.db.GetUser(context.Background(), cmd.args[0])
 	if err != nil {
@@ -44,8 +42,8 @@ func handlerLogin(s *state, cmd command) error {
 	return nil
 }
 
+// Register user given in commands args slice
 func handlerRegister(s *state, cmd command) error {
-	//Register user given in commands args slice
 	if len(cmd.args) < 1 {
 		return fmt.Errorf("commands arg slice is smaller than 1")
 	}
@@ -76,8 +74,8 @@ func handlerRegister(s *state, cmd command) error {
 	return nil
 }
 
+// Reset database state, deleting all registered users
 func handlerReset(s *state, cmd command) error {
-	//Reset database state, deleting all registered users
 	err := s.db.ResetUsers(context.Background())
 	if err != nil {
 		return fmt.Errorf("failed to delete table users: %v", err)
@@ -85,8 +83,8 @@ func handlerReset(s *state, cmd command) error {
 	return nil
 }
 
+// Print list of registered users and highlight current users
 func handlerUsers(s *state, cmd command) error {
-	//Print list of registered users and highlight current users
 	users, err := s.db.GetUsers(context.Background())
 	if err != nil {
 		return fmt.Errorf("failed to get users from database: %v", err)
@@ -105,8 +103,8 @@ func handlerUsers(s *state, cmd command) error {
 	return nil
 }
 
+// aggregate feeds, needs one arg of time between fetching feeds, e.g. "1m" for one minute
 func handlerAgg(s *state, cmd command) error {
-	//aggregate feeds, needs one arg of time between fetching feeds, e.g. "1m" for one minute
 	if len(cmd.args) < 1 {
 		return fmt.Errorf("commands args is smaller than 1")
 	}
@@ -128,8 +126,8 @@ func handlerAgg(s *state, cmd command) error {
 
 }
 
+// prints all feeds in database
 func handlerFeeds(s *state, cmd command) error {
-	//prints all feeds in database
 	feeds, err := s.db.GetFeeds(context.Background())
 	if err != nil {
 		return fmt.Errorf("failed to get feeds: %v", err)
@@ -140,8 +138,8 @@ func handlerFeeds(s *state, cmd command) error {
 	return nil
 }
 
+// add feed to feeds table in database
 func handlerAddFeed(s *state, cmd command, user database.User) error {
-	//add feed to feeds table in database
 	if len(cmd.args) < 2 {
 		return fmt.Errorf("commands args is smaller than 2")
 	}
@@ -186,8 +184,8 @@ func handlerAddFeed(s *state, cmd command, user database.User) error {
 	return nil
 }
 
+// takes a single URL and creates a new feed follow for current user
 func handlerFollow(s *state, cmd command, user database.User) error {
-	//takes a single URL and creates a new feed follow for current user
 	if len(cmd.args) < 1 {
 		return fmt.Errorf("commands arg slice is smaller than 1")
 	}
@@ -220,8 +218,8 @@ func handlerFollow(s *state, cmd command, user database.User) error {
 	return nil
 }
 
+// print the feeds current user is following
 func handlerFollowing(s *state, cmd command, user database.User) error {
-	//print the feeds current user is following
 	dbUser, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
 	if err != nil {
 		return fmt.Errorf("failed to get user: %s, %v", s.cfg.CurrentUserName, err)
@@ -236,8 +234,8 @@ func handlerFollowing(s *state, cmd command, user database.User) error {
 	return nil
 }
 
+// unfollow given feed by url for logged in user
 func handlerUnfollow(s *state, cmd command, user database.User) error {
-	//unfollow given feed by url for logged in user
 	if len(cmd.args) < 1 {
 		return fmt.Errorf("commands arg slice is smaller than 1")
 	}
@@ -248,6 +246,32 @@ func handlerUnfollow(s *state, cmd command, user database.User) error {
 		Name: user.Name,
 		Url:  cmd.args[0],
 	})
+	return nil
+}
+
+// browse the feeds from logged in user, argument for number of posts [default=2]
+func handlerBrowse(s *state, cmd command, user database.User) error {
+	var limit int
+	var err error
+	if len(cmd.args) == 1 {
+		limit, err = strconv.Atoi(cmd.args[0])
+		if err != nil {
+			return fmt.Errorf("usage: %v <Optional: limit number of posts>", cmd.name)
+		}
+	} else {
+		limit = 2
+	}
+	posts, err := s.db.GetPostsForUser(context.Background(), database.GetPostsForUserParams{
+		Name:  user.Name,
+		Limit: int32(limit),
+	})
+	if err != nil {
+		return err
+	}
+	for num, post := range posts {
+		fmt.Printf("%2v - %v\n", num, post.Title)
+	}
+
 	return nil
 }
 

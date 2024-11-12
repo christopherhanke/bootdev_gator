@@ -42,6 +42,7 @@ func main() {
 	commands.register("follow", middlerwareLoggedIn(handlerFollow))
 	commands.register("following", middlerwareLoggedIn(handlerFollowing))
 	commands.register("unfollow", middlerwareLoggedIn(handlerUnfollow))
+	commands.register("browse", middlerwareLoggedIn(handlerBrowse))
 
 	args := os.Args
 	if len(args) < 2 {
