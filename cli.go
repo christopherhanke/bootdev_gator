@@ -106,6 +106,7 @@ func handlerUsers(s *state, cmd command) error {
 }
 
 func handlerAgg(s *state, cmd command) error {
+	//aggregate feeds, needs one arg of time between fetching feeds, e.g. "1m" for one minute
 	if len(cmd.args) < 1 {
 		return fmt.Errorf("commands args is smaller than 1")
 	}
