@@ -7,6 +7,7 @@ import (
 	"github.com/christopherhanke/bootdev_gator/internal/database"
 )
 
+// handler for securing there is a logged in user
 func middlerwareLoggedIn(handler func(s *state, cmd command, user database.User) error) func(*state, command) error {
 	return func(s *state, cmd command) error {
 		user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)

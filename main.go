@@ -18,7 +18,6 @@ func main() {
 		log.Fatalf("error reading config: %v\n", err)
 	} else {
 		currState.cfg = &bufferCfg
-		//fmt.Printf("Read state: %+v\n", *currState.cfg)
 	}
 	db, err := sql.Open("postgres", currState.cfg.DBURL)
 	if err != nil {
@@ -72,5 +71,4 @@ func main() {
 	if err != nil {
 		log.Fatalf("error reading config: %v\n", err)
 	}
-	//fmt.Printf("Read config again: %+v\n", cfg)
 }

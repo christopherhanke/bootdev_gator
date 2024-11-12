@@ -26,7 +26,7 @@ type command struct {
 // Login user given in commands args slice
 func handlerLogin(s *state, cmd command) error {
 	if len(cmd.args) < 1 || len(cmd.args) > 1 {
-		return fmt.Errorf("usage: %v <user>", cmd.name)
+		return fmt.Errorf("usage: %v <username>", cmd.name)
 	}
 	_, err := s.db.GetUser(context.Background(), cmd.args[0])
 	if err != nil {
@@ -44,12 +44,10 @@ func handlerLogin(s *state, cmd command) error {
 
 // Register user given in commands args slice
 func handlerRegister(s *state, cmd command) error {
-	if len(cmd.args) < 1 {
-		return fmt.Errorf("commands arg slice is smaller than 1")
+	if len(cmd.args) < 1 || len(cmd.args) > 1 {
+		return fmt.Errorf("usage: %v <username>", cmd.name)
 	}
-	if len(cmd.args) > 1 {
-		return fmt.Errorf("commands arg slice is bigger than 1")
-	}
+
 	if len(cmd.args[0]) <= 1 {
 		return fmt.Errorf("no valid username given: %v (to short)", cmd.args[0])
 	}
@@ -105,11 +103,8 @@ func handlerUsers(s *state, cmd command) error {
 
 // aggregate feeds, needs one arg of time between fetching feeds, e.g. "1m" for one minute
 func handlerAgg(s *state, cmd command) error {
-	if len(cmd.args) < 1 {
-		return fmt.Errorf("commands args is smaller than 1")
-	}
-	if len(cmd.args) > 1 {
-		return fmt.Errorf("commands args is bigger than 1")
+	if len(cmd.args) < 1 || len(cmd.args) > 1 {
+		return fmt.Errorf("usage: %v <time between fetches, e.g. 1m>", cmd.name)
 	}
 	time_between_req, err := time.ParseDuration(cmd.args[0])
 	if err != nil {
@@ -123,7 +118,6 @@ func handlerAgg(s *state, cmd command) error {
 			return err
 		}
 	}
-
 }
 
 // prints all feeds in database
@@ -140,11 +134,8 @@ func handlerFeeds(s *state, cmd command) error {
 
 // add feed to feeds table in database
 func handlerAddFeed(s *state, cmd command, user database.User) error {
-	if len(cmd.args) < 2 {
-		return fmt.Errorf("commands args is smaller than 2")
-	}
-	if len(cmd.args) > 2 {
-		return fmt.Errorf("commands args is bigger than 2")
+	if len(cmd.args) < 2 || len(cmd.args) > 2 {
+		return fmt.Errorf("usage: %v <name> <url>", cmd.name)
 	}
 
 	dbUser, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
@@ -186,11 +177,8 @@ func handlerAddFeed(s *state, cmd command, user database.User) error {
 
 // takes a single URL and creates a new feed follow for current user
 func handlerFollow(s *state, cmd command, user database.User) error {
-	if len(cmd.args) < 1 {
-		return fmt.Errorf("commands arg slice is smaller than 1")
-	}
-	if len(cmd.args) > 1 {
-		return fmt.Errorf("commands arg slice is bigger than 1")
+	if len(cmd.args) < 1 || len(cmd.args) > 1 {
+		return fmt.Errorf("usage: %v <url>", cmd.name)
 	}
 	dbUser, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
 	if err != nil {
@@ -236,16 +224,16 @@ func handlerFollowing(s *state, cmd command, user database.User) error {
 
 // unfollow given feed by url for logged in user
 func handlerUnfollow(s *state, cmd command, user database.User) error {
-	if len(cmd.args) < 1 {
-		return fmt.Errorf("commands arg slice is smaller than 1")
+	if len(cmd.args) < 1 || len(cmd.args) > 1 {
+		return fmt.Errorf("usage: %v <url>", cmd.name)
 	}
-	if len(cmd.args) > 1 {
-		return fmt.Errorf("commands arg slice is bigger than 1")
-	}
-	s.db.DeleteFeedFollow(context.Background(), database.DeleteFeedFollowParams{
+	err := s.db.DeleteFeedFollow(context.Background(), database.DeleteFeedFollowParams{
 		Name: user.Name,
 		Url:  cmd.args[0],
 	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// scraping feeds, securing to database
 func scrapeFeeds(s *state) error {
 	nextFeed, err := s.db.GetNextFeedToFetch(context.Background())
 	if err != nil {
